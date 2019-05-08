@@ -184,7 +184,7 @@ export default {
         { title: '上课人数', key: 'student_total', align: 'center', sortable: 'custom' },
         // { title: '计划课时', key: 'teach_material', align: 'center' },
         { title: '创建日期', key: 'created_at', align: 'center', sortable: 'custom' },
-        { title: '状态', key: 'classes_status_name', align: 'center' },
+        // { title: '状态', key: 'classes_status_name', align: 'center' },
         {
           title: '操作',
           key: 10,
@@ -288,8 +288,8 @@ export default {
     },
 
     // 获取班级详情通用方法
-    getClasseData(classId) {
-      return this.$http.get(`/classes/${classId}`)
+    getClasseData() {
+      return this.$http.get('/oa/classes/get_class_list')
         .then((res) => {
           this.editModal.form = { ...res }
           this.editModal.active = true

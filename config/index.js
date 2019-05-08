@@ -33,7 +33,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/api': {
-        target: 'http://api.bel.org.cn',
+        target: 'http://api-stage.bel.org.cn',
         changeOrigin: true
       },
       '/images': {

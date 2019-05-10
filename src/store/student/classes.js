@@ -31,7 +31,7 @@ export default {
   actions: {
     // 班级列表接口
     [STUDENT.CLASSES.INIT]({ commit }, query = '') {
-      return Http.get(`/classes${query}`)
+      return Http.get(`/oa/class_list${query}`)
         .then((res) => {
           commit(STUDENT.CLASSES.INIT, res)
         })

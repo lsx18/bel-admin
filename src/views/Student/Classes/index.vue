@@ -23,7 +23,7 @@
       </Form-item>
 
       <!-- 班级状态 -->
-      <Form-item>
+      <!-- <Form-item>
         <Select
           v-model="query[`equal[classes_status]`]"
           placeholder="请选择状态"
@@ -35,6 +35,17 @@
             :key="status.display_name"
           >{{ status.display_name }}</Option>
         </Select>
+      </Form-item> -->
+
+      <!-- 日期范围搜索 -->
+      <Form-item>
+        <app-date-picker
+          style="width:20em;"
+          v-model="query['between[created_at]']"
+          format="yyyy-MM-dd HH:mm"
+          type="datetimerange"
+          placeholder="创建日期范围"
+        ></app-date-picker>
       </Form-item>
 
     </App-table-form>
@@ -107,7 +118,7 @@
       :form="editModal.form"
       :isEdit="editModal.isEdit"
       :isReview="editModal.isReview"
-      :productList="productList"
+
       :teacherList="teacherList"
       :teachMaterialList="teachMaterialList"
       :courseList="courseList"
@@ -150,41 +161,53 @@ export default {
 
   data() {
     return {
+      // likeKeys: [
+      //   { label: '班级名称', value: 'classes_name' },
+      //   { label: '排课专员', value: 'customer_relationships_name' },
+      //   { label: '教师', value: 'teacher_item' },
+      // ],
+      // likeKey: 'classes_name',
+      // query: {
+      //   'equal[classes_status]': null,
+      // },
       likeKeys: [
-        { label: '班级名称', value: 'classes_name' },
-        { label: '排课专员', value: 'customer_relationships_name' },
-        { label: '教师', value: 'teacher_item' },
+        { label: '班级名称', value: 'name' },
       ],
-      likeKey: 'classes_name',
+      likeKey: 'name',
       query: {
-        'equal[classes_status]': null,
+        'equal[created_at]': [],
       },
 
       columns: [
-        {
-          title: '班级名称',
-          key: 'classes_name',
-          align: 'center',
-          width: 320,
-          render: (h, params) => {
-            const { classes_name, student_name } = params.row
-            return h('Poptip', {
-              class: 'color-primary',
-              props: {
-                trigger: 'hover',
-                content: student_name === '' ? '暂无学员' : student_name,
-                placement: 'right',
-              },
-            }, classes_name)
-          },
-        },
-        { title: '教材版本', key: 'teach_material_name', align: 'center' },
-        { title: '排课专员', key: 'customer_relationships_name', align: 'center' },
-        { title: '教师', key: 'teacher_item', align: 'center' },
-        { title: '上课人数', key: 'student_total', align: 'center', sortable: 'custom' },
-        // { title: '计划课时', key: 'teach_material', align: 'center' },
+        // {
+        //   title: '班级名称',
+        //   key: 'classes_name',
+        //   align: 'center',
+        //   width: 320,
+        //   render: (h, params) => {
+        //     const { classes_name, student_name } = params.row
+        //     return h('Poptip', {
+        //       class: 'color-primary',
+        //       props: {
+        //         trigger: 'hover',
+        //         content: student_name === '' ? '暂无学员' : student_name,
+        //         placement: 'right',
+        //       },
+        //     }, classes_name)
+        //   },
+        // },
+        // { title: '教材版本', key: 'teach_material_name', align: 'center' },
+        // { title: '排课专员', key: 'customer_relationships_name', align: 'center' },
+        // { title: '教师', key: 'teacher_item', align: 'center' },
+        // { title: '上课人数', key: 'student_total', align: 'center', sortable: 'custom' },
+        // // { title: '计划课时', key: 'teach_material', align: 'center' },
+        // { title: '创建日期', key: 'created_at', align: 'center', sortable: 'custom' },
+        // { title: '状态', key: 'classes_status_name', align: 'center' },
+        { title: '班级名称', key: 'name', align: 'center' },
+        { title: '班级头像', key: 'protrait', align: 'center' },
+        { title: '创建者', key: 'admin_id', align: 'center' },
         { title: '创建日期', key: 'created_at', align: 'center', sortable: 'custom' },
-        { title: '状态', key: 'classes_status_name', align: 'center' },
+        { title: '更新日期', key: 'updated_at', align: 'center', sortable: 'custom' },
         {
           title: '操作',
           key: 10,
@@ -231,7 +254,7 @@ export default {
       classId: null, // 班级编号
       classesName: '', // 班级名称
 
-      productList: [], // 产品数据源
+      // productList: [], // 产品数据源
       teacherList: [], // 教师数据源
       courseList: [], // 排课专员数据源
       teachMaterialList: {}, // 教材版本数据源
@@ -288,8 +311,8 @@ export default {
     },
 
     // 获取班级详情通用方法
-    getClasseData(classId) {
-      return this.$http.get(`/classes/${classId}`)
+    getClasseData() {
+      return this.$http.get('/oa/class_list')
         .then((res) => {
           this.editModal.form = { ...res }
           this.editModal.active = true
@@ -330,21 +353,21 @@ export default {
     },
 
     // 取消班级
-    cancelSubmit() {
-      this.loading.cancel = true
-      // 班级id用来请求删除接口
-      this.$http.post(`/classes/cancel/${this.classId}`)
-        .then(() => {
-          this.loading.cancel = false
-          this.modal.cancel = false
-          this.$Message.warning('取消成功！')
-          this.fetchData()
-        })
-        .catch(({ message }) => {
-          this.loading.cancel = false
-          this.$Message.warning(message)
-        })
-    },
+    // cancelSubmit() {
+    //   this.loading.cancel = true
+    //   // 班级id用来请求删除接口
+    //   this.$http.post(`/classes/cancel/${this.classId}`)
+    //     .then(() => {
+    //       this.loading.cancel = false
+    //       this.modal.cancel = false
+    //       this.$Message.warning('取消成功！')
+    //       this.fetchData()
+    //     })
+    //     .catch(({ message }) => {
+    //       this.loading.cancel = false
+    //       this.$Message.warning(message)
+    //     })
+    // },
 
     // 根据接口和loaction.search（query）获取列表数据
     getData(qs) {
@@ -355,37 +378,37 @@ export default {
     },
 
     // 获取产品数据源
-    getProductList() {
-      this.$http.get('/contract_step3?sale_status=1')
-        .then(({ product_list, teach_material_list }) => {
-          this.productList = product_list
-          this.teachMaterialList = teach_material_list
-        })
-        .catch(({ message }) => {
-          this.errorNotice(message)
-        })
-    },
+    // getProductList() {
+    //   this.$http.get('/contract_step3?sale_status=1')
+    //     .then(({ product_list, teach_material_list }) => {
+    //       this.productList = product_list
+    //       this.teachMaterialList = teach_material_list
+    //     })
+    //     .catch(({ message }) => {
+    //       this.errorNotice(message)
+    //     })
+    // },
 
     // 获取教师数据源
     getTeachertList() {
-      this.$http.get('/teacher_list?attr=is_student_teac')
-        .then((res) => {
-          this.teacherList = res
-        })
-        .catch(({ message }) => {
-          this.errorNotice(message)
-        })
+      // this.$http.get('/teacher_list?attr=is_student_teac')
+      //   .then((res) => {
+      //     this.teacherList = res
+      //   })
+      //   .catch(({ message }) => {
+      //     this.errorNotice(message)
+      //   })
     },
 
     // 获取排课专员数据源
     getCourseList() {
-      this.$http.get('/teacher_list?attr=is_student_schedule')
-        .then((res) => {
-          this.courseList = res
-        })
-        .catch(({ message }) => {
-          this.errorNotice(message)
-        })
+      // this.$http.get('/teacher_list?attr=is_student_schedule')
+      //   .then((res) => {
+      //     this.courseList = res
+      //   })
+      //   .catch(({ message }) => {
+      //     this.errorNotice(message)
+      //   })
     },
 
     // 接口错误处理
@@ -398,7 +421,7 @@ export default {
   },
 
   created() {
-    this.getProductList()
+    // this.getProductList()
     this.getTeachertList()
     this.getCourseList()
   },
